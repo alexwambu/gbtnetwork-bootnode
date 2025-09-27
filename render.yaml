@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: gbtnetwork
+    env: docker
+    plan: starter
+    dockerfilePath: Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: DATADIR
+        value: "/root/.gbtnetwork"
