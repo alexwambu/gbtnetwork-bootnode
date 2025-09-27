@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: gbtnetwork
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: DATADIR
+        value: /root/.gbtnetwork
+    healthCheckPath: /static-nodes.json
+    disk:
+      name: gbtnetwork-data
+      mountPath: /root/.gbtnetwork
+      sizeGB: 2
