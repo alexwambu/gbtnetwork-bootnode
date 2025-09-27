@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: gbtnetwork
+    env: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: NETWORK_MODE
+        value: "bootnode"   # change to "node" for gbtnetwork node
