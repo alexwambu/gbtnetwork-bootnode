@@ -1,0 +1,50 @@
+#!/bin/bash
+set -e
+
+LOG_FILE=$1
+STATIC_FILE=$2
+MODE=${3:-once}
+HTTP_PORT=${4:-8080}
+
+# ✅ Ensure static file exists
+if [ ! -f "$STATIC_FILE" ]; then
+  echo "[]" > "$STATIC_FILE"
+  mkdir -p /root/.gbtnetwork
+  cp "$STATIC_FILE" /root/.gbtnetwork/static-nodes.json
+fi
+
+update_static_nodes() {
+  ENR=$(grep -Eo "enr:[a-zA-Z0-9_-]+" "$LOG_FILE" | tail -n1)
+  ENODE=$(grep -Eo "enode://[0-9a-fA-F@.:]+" "$LOG_FILE" | tail -n1)
+
+  if [ -n "$ENR" ]; then
+    echo "[\"$ENR\"]" > "$STATIC_FILE"
+  elif [ -n "$ENODE" ]; then
+    echo "[\"$ENODE\"]" > "$STATIC_FILE"
+  fi
+
+  mkdir -p /root/.gbtnetwork
+  cp "$STATIC_FILE" /root/.gbtnetwork/static-nodes.json
+}
+
+start_http_server() {
+  echo "🌐 Serving static-nodes.json on :$HTTP_PORT"
+  while true; do
+    { 
+      read line
+      echo -e "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n"
+      cat "$STATIC_FILE"
+    } | nc -l -p "$HTTP_PORT" -q 1
+  done
+}
+
+if [ "$MODE" = "loop" ]; then
+  while true; do
+    update_static_nodes
+    sleep 60
+  done
+elif [ "$MODE" = "http" ]; then
+  start_http_server
+else
+  update_static_nodes
+fi
